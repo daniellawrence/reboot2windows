@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# ---------------------------------------------------------
+# "How to reboot into your windows box of shame for games"
+# ---------------------------------------------------------
+GRUB_DEFAULT_FILE="/etc/default/grub"
+GRUB_FILE="/boot/grub/grub.cfg"
+GRUB_ENV_FILE="/boot/grub/grubenv"
+GRUB_FILE_CONTENTS=$(cat ${GRUB_FILE})
+COUNTDOWN_SECONDS=5
+
+
+# Make sure that GRUB_DEFAULT is set to saved.
+if [[ $(grep -c GRUB_DEFAULT=saved ${GRUB_DEFAULT_FILE}) -eq 0 ]];then
+    echo "reboot2windows: GRUB_DEFAULT needs to be set to saved in ${GRUB_DEFAULT_FILE}"
+    grep GRUB_DEFAULT ${GRUB_DEFAULT_FILE}
+    exit 2
+fi
+
+
+# Only try this if we have found windows in /etc/grub/grub.cfg
+if [[ $(cat "${GRUB_FILE}" | grep -c '\-\-class windows')  -eq 0 ]];then
+    echo "reboot2windows: Failed to find windows in ${GRUB_FILE}"
+    exit 1
+fi
+
+
+# Find the windows GRUB_ID in order to switch via grub-reboot
+WINDOWS_LINE=$(cat ${GRUB_FILE} | awk '/^menuentry/ { if(match($0, "windows") > 0){print $0}}' )
+WINDOWS_MENU=$(echo $WINDOWS_LINE  | grep -Po "'.*?'" | head -1)
+WINDOWS_GRUB_ID=$(cat ${GRUB_FILE} | awk '/^menuentry/ { id+=1; if(match($0, "windows") > 0){ print id } }' )
+
+# Ask the user if they are sure..
+read -r -p "Reboot into ${WINDOWS_MENU} [y/N] " response
+case $response in
+    [yY][eE][sS]|[yY])
+	break;;
+    *)
+	exit 0
+	;;
+esac
+
+
+# set the next_entry
+sudo grub-reboot "${WINDOWS_GRUB_ID}"
+
+# Verify the change
+if [[ $( cat ${GRUB_ENV_FILE} | grep -c "next_entry=${WINDOWS_GRUB_ID}" ) -eq 0 ]];then
+   echo "reboot2windows: Failed to set next_entry in ${GRUB_ENV_FILE}"
+   cat ${GRUB_ENV_FILE}
+   exit 1
+fi
+
+
+# The main reboot that will trigger a reboot into your windows box of shame.
+echo "rebooting..."
+# sudo reboot
