@@ -28,10 +28,12 @@ You can do this by updating `/etc/default/grub`
 	done
 
 
-Drop the `reboot2windows` script into /usr/local/bin/
+Clone down `reboot2windows` and setup a sym-link.
 
-     sudo chmod 700 /usr/local/bin/reboot2windows
+     git clone https://github.com/daniellawrence/reboot2windows
+	 ln -s $PWD/reboot2windows/reboot2windows /usr/bin/
 
+The symlink lets you easily update the script if needed, via a git pull
 
 How to run
 ----------
