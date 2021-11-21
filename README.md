@@ -1,7 +1,7 @@
 Reboot 2 Windows
 ----------------
 
-I have am currently dual booting my home computer with Debian & Windows.
+I am currently dual booting my home computer with Debian & Windows.
 This is an easy script that uses `grub-reboot` to change the saved system to boot
 from debian (default) into windows as a once off for gaming.
 When ever I want to get back to debian, a simple reboot swings into linux :)
